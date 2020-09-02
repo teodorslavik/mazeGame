@@ -30,6 +30,8 @@ function App() {
   const [positionOfEndX, setPositionOfEndX] = useState(null);
   const [positionOfEndY, setPositionOfEndY] = useState(null);
   
+  const [gameIsOver, setGameIsOver] = useState(false);
+
   const [positionOfLavaX, setPositionOfLavaX] = useState(null);
   const [positionOfLavaY, setPositionOfLavaY] = useState(null);
   const [lavasArray, setLavasArray] = useState([]);
@@ -51,22 +53,21 @@ function App() {
 // ];
 
 const gameArrayPlans = [
-`##@
+`#~@
 # X`,
-`@##~X`,
-// `@~ ###
-// #### X`,
-// `##@##
-//   # #
-//   #  
-//   ###
-//  X#  `,
-// `#@ X
-// ~###`,
-// `#@~#X
-// ###~#
-//  ####
-// #####`,
+`@~ ###
+#### X`,
+`##@##
+  # #
+  #  
+  ###
+ X#  `,
+`#@ X
+~###`,
+`#@~#X
+###~#
+ ####
+#####`,
 `@`
 ];
 
@@ -120,6 +121,7 @@ const getContentInGameMap = (whereX, whereY) => {
   }
 
 const loadActualLevel = () => {
+  setGameIsOver(false);
   setGameMode(GAME_MODE_INTRO);
 
 //console.log("AAAAAAA");
@@ -144,6 +146,7 @@ const loadActualLevel = () => {
 }
 
 const runNextLevel = () => {
+  setGameIsOver(false);
   if (positionOfEndX === actualPositionOfPersonX && positionOfEndY === actualPositionOfPersonY){
     setLevelIndex(levelIndex + 1)
   }
@@ -166,11 +169,9 @@ const runNextLevel = () => {
    //  }, [actualPositionOfPersonX, actualPositionOfPersonY]);
 
 
-  const handleMovePerson = (rowIndexToChecked, cellIndexToChecked, cellItem, tempLavasMap) => {
+  const handleMovePerson = (rowIndexToChecked, cellIndexToChecked, cellItem) => {
     if(!isAllowedMove(rowIndexToChecked, cellIndexToChecked, cellItem)) {return;}
     document.querySelector("#audioMove").play();
-    setActualPositionOfPersonX(cellIndexToChecked);
-    setActualPositionOfPersonY(rowIndexToChecked);
     const newGameMap = gameMap.map((rowItem, rowIndex) => (
       rowItem.map((cellItem, cellIndex) => {
         if(rowIndexToChecked === rowIndex && cellIndexToChecked === cellIndex) {
@@ -182,9 +183,10 @@ const runNextLevel = () => {
       })
     ));
    setGameMap(newGameMap);
-  }
+   setActualPositionOfPersonX(cellIndexToChecked);
+   setActualPositionOfPersonY(rowIndexToChecked);
 
-console.log({lavasArray})
+  }
 /*useEffect((cellItem) => {
     // const IsPlayerBurningInLava = (cellItem) => {
     //   if (actualPositionOfPersonX === positionOfLavaX && actualPositionOfPersonY === positionOfLavaY) {
@@ -211,8 +213,7 @@ console.log({lavasArray})
 
   }, [actualPositionOfPersonX, actualPositionOfPersonY]);
 */
-useEffect((cellItem) => {
-
+useEffect(() => {
     const isPersonInLava = lavasArray.some(lavaItem => (
       lavaItem.cellIndex === actualPositionOfPersonX
       && lavaItem.rowIndex === actualPositionOfPersonY
@@ -221,21 +222,23 @@ useEffect((cellItem) => {
     // console.log({isPersonInLava, lavasArray, actualPositionOfPersonX, actualPositionOfPersonY});
 
     if (isPersonInLava) {
-        setGameMap(gameMap.map((rowItem, rowIndex) => (
+        setGameIsOver(true);
+        const tempGameMap = gameMap.map((rowItem, rowIndex) => (
           rowItem.map((cellItem, cellIndex) => {
-            console.log({cellItem, cellIndex, rowIndex})
-            if (cellItem === "~") {
+            if (cellItem === "@") {
               return "†";
             } else {return cellItem;}
-            }
-          )         
-        )));
+          })         
+        ));
+        setGameMap(tempGameMap);
 
     }
   }, [actualPositionOfPersonX, actualPositionOfPersonY]);
-
 const getLavasMap = (gameMap) => {
   let tempLavasMap = [];
+  // proj9t gameMap
+  // a kdyz najdu lavu tak si ulozim jeji pozici do tempLavasMap pomoci .push
+  // tempLavasMap.push({2, 3})
   gameMap.map((rowItem, rowIndex) => {
     rowItem.map((cellItem, cellIndex) => {
       if (cellItem === "~") {
@@ -256,15 +259,19 @@ const isLavaInPosition = (positionX, positionY, lavasArray) => {
 
 
   const handleMoveUp = (e) => {
+    if(gameIsOver) {return;}
     handleMovePerson(actualPositionOfPersonY - 1, actualPositionOfPersonX, getContentInGameMap(actualPositionOfPersonX, actualPositionOfPersonY - 1));
   }
   const handleMoveDown = (e) => {
+    if(gameIsOver) {return;}
     handleMovePerson(actualPositionOfPersonY + 1, actualPositionOfPersonX, getContentInGameMap(actualPositionOfPersonX, actualPositionOfPersonY + 1));
   }
   const handleMoveRight = (e) => {
+    if(gameIsOver) {return;}
     handleMovePerson(actualPositionOfPersonY, actualPositionOfPersonX + 1, getContentInGameMap(actualPositionOfPersonX + 1, actualPositionOfPersonY));
   }
   const handleMoveLeft = (e) => {
+    if(gameIsOver) {return;}
     handleMovePerson(actualPositionOfPersonY, actualPositionOfPersonX - 1, getContentInGameMap(actualPositionOfPersonX - 1, actualPositionOfPersonY));
   }
 
@@ -350,6 +357,8 @@ useEffect(() => {
 //     deadInLavaRoom
 //   }, [actualPositionOfPersonX, actualPositionOfPersonY]
 
+
+  console.log("AAAA", {gameMap})
   return (
     <div className="App">
       <Hotkeys keyName="up,w" onKeyDown={handleMoveUp} />
@@ -360,6 +369,7 @@ useEffect(() => {
       <Hotkeys keyName="r" onKeyDown={runNextLevel} />
 
       
+      {gameIsOver && <p>GAME OVER</p>}
       
       {gameMode === GAME_MODE_INTRO && <Intro
             {...{levelIndex, setGameModeToPreview}}
