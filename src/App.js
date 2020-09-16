@@ -430,9 +430,9 @@ useEffect(() => {
               {gameOverSign && <p><strong>No Výborně, <br /> dohrál jsi mou hru.</strong></p>}
               {showGameRestartButton && <p>Zmáčkni E pro restart bludiště</p>}
               <p><strong>{signNextLevel}</strong></p>
-              <p><a href="https://teo.jacon.cz/index.php/9905">zpet na uvodni stranku</a></p>
 
-              <button onClick={handleMoveUp}>ˆ</br >|</button>
+              <button onClick={handleMoveUp}>ˆ</button>
+              <p><a href="https://teo.jacon.cz/index.php/9905">zpet na uvodni stranku</a></p>
 
             <audio src="move.mp3" id="audioMove" />
             <audio src="end.mp3" id="audioEnd" />
