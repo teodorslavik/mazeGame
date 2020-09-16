@@ -18,24 +18,26 @@ function App() {
   const theEnd = "X"
   const path = "#"
   const lava = "~"
-  const PersonInLava = "~@~";
+  const enemy = "!"
 
 
-  
+
   const [gameMap, setGameMap] = useState([[]]);
   const [actualPositionOfPersonX, setActualPositionOfPersonX] = useState(0);
   const [actualPositionOfPersonY, setActualPositionOfPersonY] = useState(0);
+
+  const [actualPositionOfEnemyX, setActualPositionOfEnemyX] = useState(undefined);
+  const [actualPositionOfEnemyY, setActualPositionOfEnemyY] = useState(undefined);
+  const [randomNumber, setRandomNumber] = useState(null);
+
   const [gameMapWidth, setGameMapWidth] = useState(undefined);
   const [gameMapHeight, setGameMapHeight] = useState(undefined);
   const [positionOfEndX, setPositionOfEndX] = useState(null);
   const [positionOfEndY, setPositionOfEndY] = useState(null);
-  
   const [gameIsOver, setGameIsOver] = useState(false);
-
   const [positionOfLavaX, setPositionOfLavaX] = useState(null);
   const [positionOfLavaY, setPositionOfLavaY] = useState(null);
   const [lavasArray, setLavasArray] = useState([]);
-  
   const [levelIndex, setLevelIndex] = useState(0);
   const [gameMode, setGameMode] = useState(GAME_MODE_INTRO);
   const [showGameRestartButton, setShowGameRestartButton] = useState(false);
@@ -53,13 +55,16 @@ function App() {
 // ];
 
 const gameArrayPlans = [
-`#~@
+// `#@#
+// #X#
+// ###`,
+`##@
 # X`,
-`@~ ###
+`@# ###
 #### X`,
 `##@##
   # #
-  #  
+  #
   ###
  X#  `,
 `#@ X
@@ -71,6 +76,9 @@ const gameArrayPlans = [
 `@`
 ];
 
+function randomInt(min, max) {
+  return min + Math.floor((max - min) * Math.random());
+}
 
 const getContentInGameMap = (whereX, whereY) => {
    let ret = isEmpty;
@@ -84,6 +92,8 @@ const getContentInGameMap = (whereX, whereY) => {
 
     return ret;
   }
+
+
     const findpostionOfEnd = (gameMap) => {
     gameMap.map((rowItem, rowIndex) => {
       rowItem.map((cellItem, cellIndex) => {
@@ -96,25 +106,23 @@ const getContentInGameMap = (whereX, whereY) => {
     });
   }
 
-  //   const findPositionOfDeadlyLava = (gameMap) => {
-  //   gameMap.map((rowItem, rowIndex) => {
-  //     rowItem.map((cellItem, cellIndex) => {
-
-  //       if(cellItem === "~") {
-  //         setPositionOfLavaX(cellIndex);
-  //         setPositionOfLavaY(rowIndex);
-  //         console.log({positionOfLavaX, positionOfLavaY})
-  //       }
-  //     });
-  //   });
-  // }
-
   const findPositionOfPersonInGameMapAndSetToState = (gameMap) => {
     gameMap.map((rowItem, rowIndex) => {
       rowItem.map((cellItem, cellIndex) => {
         if(cellItem === "@") {
           setActualPositionOfPersonX(cellIndex);
           setActualPositionOfPersonY(rowIndex);
+        }
+      });
+    });
+  }
+
+  const findPositionOfEnemyInGameMapAndSetToState = (gameMap) => {
+    gameMap.map((rowItem, rowIndex) => {
+      rowItem.map((cellItem, cellIndex) => {
+        if(cellItem === "!") {
+          setActualPositionOfEnemyX(cellIndex);
+          setActualPositionOfEnemyY(rowIndex);
         }
       });
     });
@@ -141,6 +149,7 @@ const loadActualLevel = () => {
   findpostionOfEnd(tempGameMap);
 //  findPositionOfDeadlyLava(tempGameMap);
   findPositionOfPersonInGameMapAndSetToState(tempGameMap);
+  findPositionOfEnemyInGameMapAndSetToState(tempGameMap);
   setGameMap(tempGameMap);
   getLavasMap(tempGameMap);
 }
@@ -153,25 +162,12 @@ const runNextLevel = () => {
   return
  }
 
- // const deadInLavaRoom = () => {
- //  if (actualPositionOfPersonX === positionOfLavaX && actualPositionOfPersonY === positionOfLavaY) {
- //        setDiedInLavaSign(true)
- //    }else {
- //        setDiedInLavaSign(false)
- //    }
- // }
-
    useEffect(() => {
      loadActualLevel();
     }, [levelIndex]);
-   // useEffect(() => {
-   //   deadInLavaRoom();
-   //  }, [actualPositionOfPersonX, actualPositionOfPersonY]);
-
 
   const handleMovePerson = (rowIndexToChecked, cellIndexToChecked, cellItem) => {
     if(!isAllowedMove(rowIndexToChecked, cellIndexToChecked, cellItem)) {return;}
-    document.querySelector("#audioMove").play();
     const newGameMap = gameMap.map((rowItem, rowIndex) => (
       rowItem.map((cellItem, cellIndex) => {
         if(rowIndexToChecked === rowIndex && cellIndexToChecked === cellIndex) {
@@ -179,47 +175,110 @@ const runNextLevel = () => {
 
           }
            else if (cellItem === "@") {return "#"}
-           else  {return cellItem} 
+           else  {return cellItem}
       })
     ));
    setGameMap(newGameMap);
    setActualPositionOfPersonX(cellIndexToChecked);
    setActualPositionOfPersonY(rowIndexToChecked);
+   document.querySelector("#audioMove").play();
 
   }
-/*useEffect((cellItem) => {
-    // const IsPlayerBurningInLava = (cellItem) => {
-    //   if (actualPositionOfPersonX === positionOfLavaX && actualPositionOfPersonY === positionOfLavaY) {
-    //     return (cellItem = "†")
-    //   }
-    // }
-    // if (actualPositionOfPersonX === lavasArray && actualPositionOfPersonY === lavasArray) {
-    //   return (cellItem = "†")
-    //   console.log("hori")
-    // }
-    console.log({actualPositionOfPersonX, actualPositionOfPersonY, lavasArray, cellItem});
 
-    const isPersonInLava = lavasArray.some(lavaItem => lavaItem.cellIndex === actualPositionOfPersonX && lavaItem.cellIndex === actualPositionOfPersonY); {
-        const findPersonInLava = (gameMap) => {
-          gameMap.map((rowItem, rowIndex) => {
-            rowItem.map((cellItem, cellIndex) => {
-              if(cellItem === "@") {
-                return (cellItem = "†")
-              }
-            });
-          });
-        }
+  const findDirectWayToPlayer = () => {
+    if (actualPositionOfPersonX === actualPositionOfEnemyX && actualPositionOfPersonY < actualPositionOfEnemyY) {
+      console.log("s");
+      return "s";
+    } else if (actualPositionOfPersonX > actualPositionOfEnemyX && actualPositionOfPersonY === actualPositionOfEnemyY) {
+      console.log("v");
+      return "v";
+    } else if (actualPositionOfPersonX === actualPositionOfEnemyX && actualPositionOfPersonY > actualPositionOfEnemyY) {
+      console.log("j")
+      return "j";
+    } else if (actualPositionOfPersonX < actualPositionOfEnemyX && actualPositionOfPersonY === actualPositionOfEnemyY) {
+      console.log("z")
+      return "z";
+    } else if ((actualPositionOfPersonX > actualPositionOfEnemyX) && (actualPositionOfPersonY < actualPositionOfEnemyY)) {
+      console.log("sv");
+      return "sv";
+    } else if ((actualPositionOfPersonX > actualPositionOfEnemyX) && (actualPositionOfPersonY > actualPositionOfEnemyY)) {
+      console.log("jv");
+      return "jv";
+    } else if ((actualPositionOfPersonX < actualPositionOfEnemyX) && (actualPositionOfPersonY > actualPositionOfEnemyY)) {
+      console.log("jz");
+      return "jz";
+    } else if ((actualPositionOfPersonX < actualPositionOfEnemyX) && (actualPositionOfPersonY < actualPositionOfEnemyY)) {
+      console.log("sz");
+      return "sz";
     }
+  }
+/*
+  const getNewPositionForEnemy = () => {
+    const whereIsPlayer = findDirectWayToPlayer();
 
-  }, [actualPositionOfPersonX, actualPositionOfPersonY]);
+    let newPositionX = actualPositionOfEnemyX;
+    let newPositionY = actualPositionOfEnemyY;
+    if (whereIsPlayer === "s") {
+      newPositionY = newPositionY - 1;
+      console.log("chci na sever");
+    } else if (whereIsPlayer === "v") {
+      newPositionX = newPositionX + 1;
+      console.log("chci na vychod");
+    } else if (whereIsPlayer === "j") {
+      newPositionY = newPositionY + 1;
+      console.log("chci na jih");
+    } else if (whereIsPlayer === "z") {
+      newPositionX = newPositionX - 1;
+      console.log("chci na zapad");
+    } else if (whereIsPlayer === "sv") {
+      setRandomNumber = randomInt(1, 2);
+      if (randomNumber === 1) {
+        newPositionX = newPositionX + 1;
+        console.log("chci na v");
+      } else {
+        newPositionY = newPositionY - 1;
+        console.log("chci na s");
+      }
+    } else if (whereIsPlayer === "jv") {
+      setRandomNumber = randomInt(1, 2);
+      if (randomNumber === 1) {
+        newPositionX = newPositionX + 1;
+        console.log("chci na v");
+      } else {
+        newPositionY = newPositionY + 1;
+        console.log("chci na j");
+      }
+    } else if (whereIsPlayer === "jz"); {
+      setRandomNumber = randomInt(1, 2);
+      if (randomNumber === 1) {
+        newPositionX = newPositionX - 1;
+        console.log("chci na z");
+      } else {
+        newPositionY = newPositionY + 1;
+        console.log("chci na j");
+      }
+    } else if (whereIsPlayer === "sz") {
+      setRandomNumber = randomInt(1, 2);
+      if (randomNumber === 1) {
+        newPositionX = newPositionX - 1;
+        console.log("chci na z");
+      } else {
+        newPositionY = newPositionY - 1;
+        console.log("chci na s");
+    }
+  }
+
 */
+
+
+
+  console.log({gameMap, actualPositionOfEnemyX, actualPositionOfEnemyY})
+
 useEffect(() => {
     const isPersonInLava = lavasArray.some(lavaItem => (
       lavaItem.cellIndex === actualPositionOfPersonX
       && lavaItem.rowIndex === actualPositionOfPersonY
-    )); 
-
-    // console.log({isPersonInLava, lavasArray, actualPositionOfPersonX, actualPositionOfPersonY});
+    ));
 
     if (isPersonInLava) {
         setGameIsOver(true);
@@ -228,7 +287,7 @@ useEffect(() => {
             if (cellItem === "@") {
               return "†";
             } else {return cellItem;}
-          })         
+          })
         ));
         setGameMap(tempGameMap);
 
@@ -236,9 +295,6 @@ useEffect(() => {
   }, [actualPositionOfPersonX, actualPositionOfPersonY]);
 const getLavasMap = (gameMap) => {
   let tempLavasMap = [];
-  // proj9t gameMap
-  // a kdyz najdu lavu tak si ulozim jeji pozici do tempLavasMap pomoci .push
-  // tempLavasMap.push({2, 3})
   gameMap.map((rowItem, rowIndex) => {
     rowItem.map((cellItem, cellIndex) => {
       if (cellItem === "~") {
@@ -251,13 +307,9 @@ setLavasArray(tempLavasMap);
 }
 
 
-const isLavaInPosition = (positionX, positionY, lavasArray) => {
-  // ....
-}
+// const isLavaInPosition = (positionX, positionY, lavasArray) => {
 
-
-
-
+// }
   const handleMoveUp = (e) => {
     if(gameIsOver) {return;}
     handleMovePerson(actualPositionOfPersonY - 1, actualPositionOfPersonX, getContentInGameMap(actualPositionOfPersonX, actualPositionOfPersonY - 1));
@@ -279,7 +331,7 @@ const isLavaInPosition = (positionX, positionY, lavasArray) => {
       document.querySelector("#audioMove").play();
     return (
       isAcceptedDirectToMove(rowIndexToChecked, cellIndexToChecked)
-      && ( cellItem === "#" || cellItem === "X" || cellItem === "~")
+      && ( cellItem === "#" || cellItem === "X" || cellItem === "~" || cellItem === "!")
       && !( actualPositionOfPersonX === positionOfEndX && actualPositionOfPersonY === positionOfEndY)
       && !( actualPositionOfPersonX === positionOfLavaX && actualPositionOfPersonY === positionOfLavaY)
       && (gameMode === GAME_MODE_GAME)
@@ -297,12 +349,10 @@ const isLavaInPosition = (positionX, positionY, lavasArray) => {
         ( actualPositionOfPersonY - 1 === rowIndexToChecked || actualPositionOfPersonY + 1 === rowIndexToChecked )
         && ( actualPositionOfPersonX === cellIndexToChecked )
         )
-  
+
       )
 
   }
-
-
 
   const setGameModeToPreview = () => {
     setGameMode(GAME_MODE_PREVIEW);
@@ -350,27 +400,22 @@ const isLavaInPosition = (positionX, positionY, lavasArray) => {
 
 useEffect(() => {
     if ((levelIndex + 1 === gameArrayPlans.length) && (gameMode === GAME_MODE_GAME)) {
-  setGameOverSign(true) 
+  setGameOverSign(true)
 }
    }, [gameMode]);
-// useEffect(() => {
-//     deadInLavaRoom
-//   }, [actualPositionOfPersonX, actualPositionOfPersonY]
 
 
-  console.log("AAAA", {gameMap})
+//      <Hotkeys keyName="k" onKeyDown={getNewPositionForEnemy} />
   return (
     <div className="App">
       <Hotkeys keyName="up,w" onKeyDown={handleMoveUp} />
       <Hotkeys keyName="down,s" onKeyDown={handleMoveDown} />
       <Hotkeys keyName="right,d" onKeyDown={handleMoveRight} />
       <Hotkeys keyName="left,a" onKeyDown={handleMoveLeft} />
-       <Hotkeys keyName="e" onKeyDown={loadActualLevel} />
+      <Hotkeys keyName="e" onKeyDown={loadActualLevel} />
       <Hotkeys keyName="r" onKeyDown={runNextLevel} />
+      <Hotkeys keyName="l" onKeyDown={findDirectWayToPlayer} />
 
-      
-      {gameIsOver && <p>GAME OVER</p>}
-      
       {gameMode === GAME_MODE_INTRO && <Intro
             {...{levelIndex, setGameModeToPreview}}
           />}
@@ -387,6 +432,7 @@ useEffect(() => {
               <p><strong>{signNextLevel}</strong></p>
               <p><a href="https://teo.jacon.cz/index.php/9905">zpet na uvodni stranku</a></p>
 
+              <button onClick={handleMoveUp}>ˆ</br >|</button>
 
             <audio src="move.mp3" id="audioMove" />
             <audio src="end.mp3" id="audioEnd" />

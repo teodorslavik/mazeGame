@@ -72,7 +72,7 @@ const westRoomPositionY = roomItem.positionY;
 		} else { return false}
 	};
 
-	if(roomItem.content === "#" || roomItem.content === "@" || roomItem.content === "X" || roomItem.content === "~" || roomItem.content === "†") {imRoomAndSetToMeDoors()}
+	if (roomItem.content !== " ") {imRoomAndSetToMeDoors()}
 	else {}
 	
 	return (
@@ -91,6 +91,7 @@ const westRoomPositionY = roomItem.positionY;
 						: (roomItem.content === "#") ? <PlayerIsNotInRoom />
 						: (roomItem.content === "X") ? <TreasureRoom />
 						: (roomItem.content === "~") ? <LavaRoom />
+						: (roomItem.content === "!") ? <EnemyInRoom />
 						: <NotRoom />
 					}
 				</span>
@@ -178,6 +179,13 @@ function PlayerInLava (){
 ~~~~~-|-~~~~~<br />
 ~~~~~/~\~~~~~<br />
 ~~~~~~~~~~~~~<br /></rtd></>);
+}
+function EnemyInRoom (){
+	return (<><rtd><em>..</em>nepritel!<em>..</em><br />
+<em>......</em>o<em>.</em>|<em>....</em><br />
+<em>.....</em>-|-+<em>....</em><br />
+<em>.....</em>/<em>.</em>\<em>.....</em><br />
+<em>.............</em><br /></rtd></>);
 }
 
 
